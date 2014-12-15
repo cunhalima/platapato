@@ -1,0 +1,17 @@
+name: alex
+
+target: 10.0
+
+source: 
+  - src
+
+library: 
+  - lib
+
+main:
+  src/Main.as
+
+output: 
+  file: bin/alex.swf
+  width: 640
+  height: 480
