@@ -1,13 +1,18 @@
 FCC=mxmlc
 EXE=src/Main.swf
 SRC=$(wildcard src/*.as)
-DATA=$(wildcard assets/*.png) $(wildcard assets/*.mp3)
+MAPS=$(wildcard map/*.bmp)
+MKMAP=./mkmap.py
+DATA=$(wildcard assets/*.txt) $(wildcard assets/*.png) $(wildcard assets/*.mp3)
 .PHONY: all
 
 all: $(EXE)
 
 clean:
 	@rm -f $(EXE)
+
+assets/map01.txt: map/map01.bmp
+	@$(MKMAP) $< $@
 
 run: $(EXE)
 	@flashplayer ./$(EXE)
