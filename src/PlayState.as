@@ -16,13 +16,28 @@ package {
         private var hud:HUD;
         private var fTimer:Number;
         private var iTimer:Number;
+        private var items:FlxGroup;
+        private var enemies:FlxGroup;
         public static const GRAVITY: Number = 200;
+        public static const MAX_ITEMS: uint = 100;
+        public static const MAX_ENEMIES: uint = 32;
 
         override public function create():void {
             super.create();
             player = new Player(this);
             hud = new HUD(player);
             add(player);
+            items = new FlxGroup(MAX_ITEMS);
+            var i:uint;
+            for (i = 0; i < MAX_ITEMS; i++) {
+                items.add(new Item());
+            }
+            add(items);
+            enemies = new FlxGroup(MAX_ENEMIES);
+            for (i = 0; i < MAX_ENEMIES; i++) {
+                enemies.add(new Enemy());
+            }
+            add(enemies);
             map = new FlxTilemap();
             add(map);
             changeMap(1, false);
@@ -73,14 +88,18 @@ package {
                 if (FlxG.collide(player, map)) {
                     player.hit();
                 }
+				*/
                 if (FlxG.overlap(player, enemies, DestroyableHit)) {
                     player.hit();
                 }
+				/*
                 if (FlxG.overlap(enemyshots, player, DestroyableHit)) {
                     player.hit();
                 }
+				*/
                 FlxG.overlap(player, items, null, GetItem);
-                //FlxG.overlap(weapons, map, TilemapHit, TilemapCallback);
+                /*
+				//FlxG.overlap(weapons, map, TilemapHit, TilemapCallback);
                 FlxG.overlap(weapons, map, DestroyableHit, TilemapCallback);
                 FlxG.overlap(enemyshots, map, DestroyableHit, TilemapCallback);
                 FlxG.overlap(weapons, enemies, null, DestroyableHit);
@@ -166,7 +185,7 @@ package {
             for (y = 0; y < map.heightInTiles; y++) {
                 for (x = 0; x < map.widthInTiles; x++) {
                     var tile:uint;
-                    /*
+                    
                     tile = map.getTile(x, y);
                     if (tile >= 80) {
                         map.setTile(x, y, 0);
@@ -176,9 +195,57 @@ package {
                             spawnItem(x, y, tile - 80);
                         }
                     }
-                    */
+                    
                 }
             }
+        }
+
+        private function spawnEnemy(X:Number, Y:Number, t:uint):void {
+            var e: Enemy = Enemy(enemies.getFirstDead());
+            if (e == null) {
+                return;
+            }
+            e.revive();
+            e.x = X * 16;
+            e.y = Y * 16;
+            e.setType(t);
+        }
+
+        private function DestroyableHit(Moving:FlxObject,Destroyable:FlxObject):Boolean {
+            if (Moving is Bullet) {
+                Moving.kill();
+                //explode(Moving.x, Moving.y);
+            }
+            if (Destroyable is Enemy) {
+                var e:Enemy = Enemy(Destroyable as Enemy);
+                e.kill();
+                //explode(e.x, e.y);
+                player.score += e.score;
+            }
+            return true;
+        }
+		
+        private function spawnItem(X:Number, Y:Number, t:uint):void {
+            var e: Item = Item(items.getFirstDead());
+            if (e == null) {
+                return;
+            }
+            e.revive();
+            e.x = X * 16;
+            e.y = Y * 16;
+            e.setType(t);
+        }
+
+        private function GetItem(ThePlayer:FlxObject,TheItem:FlxObject):Boolean {
+            var i:Item = Item(TheItem);
+            var p:Player = Player(ThePlayer);
+            p.score += i.score;
+            p.lives += i.lives;
+            //p.numMissiles += i.missiles;
+            //p.numBombs += i.bombs;
+            i.kill();
+            //FlxG.play(pickSND);
+            return true;
         }
 
         private function changeMap(M: uint, keepY: Boolean = true):void {
