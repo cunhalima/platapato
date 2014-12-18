@@ -14,6 +14,9 @@ clean:
 assets/map01.txt: map/map01.bmp
 	@$(MKMAP) $< $@
 
+assets/map02.txt: map/map02.bmp
+	@$(MKMAP) $< $@
+
 run: $(EXE)
 	@flashplayer ./$(EXE)
 

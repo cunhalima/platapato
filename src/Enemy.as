@@ -26,7 +26,7 @@ package {
             }
             loadGraphic(bmp, true, true, 32, 32, true);
             addAnimation("0", [69, 70, 71], 10, true);
-            addAnimation("1", [81, 82, 83], 10, true);
+            addAnimation("1", [66, 67, 68], 10, true);
             addAnimation("2", [81, 82, 83], 10, true);
             addAnimation("3", [81, 82, 83], 10, true);
             kill();
@@ -119,8 +119,8 @@ package {
                 if (shootTime == 0) {
                     shootTime = nextShoot;
                     if (mandist(ps.player) < 200) {
-                        var pos:FlxPoint = calcTargetPos(ps.player);
-                        //ps.enemyShoot(this, ps.player.x, ps.player.y);
+                        //var pos:FlxPoint = calcTargetPos(ps.player);
+                        ps.enemyShoot(this, ps.player.x + ps.player.width / 2, ps.player.y + ps.player.height / 2, shotSpeed);
                         //ps.enemyShoot(this, pos.x, pos.y, shotSpeed);
                     }
                 }

@@ -4,8 +4,8 @@ package {
  
     public class Main extends FlxGame {
         public function Main() {
-            super(320, 240, PlayState, 2); //Create a new FlxGame object at 320x240 with 2x pixels, then load PlayState
-            //super(320, 240, TitleState, 2); //Create a new FlxGame object at 320x240 with 2x pixels, then load PlayState
+            //super(320, 240, PlayState, 2); //Create a new FlxGame object at 320x240 with 2x pixels, then load PlayState
+            super(320, 240, TitleState, 2); //Create a new FlxGame object at 320x240 with 2x pixels, then load PlayState
             forceDebugger = true;
         }
     }

@@ -3,7 +3,7 @@ package {
 
     public class Item extends FlxSprite {
         [Embed(source="../assets/comidas4.png")] private var bmp:Class;
-        private var itype:uint;
+        public var itype:uint;
         public var score:uint;
         public var lives:uint;
         public var missiles:uint;
@@ -15,7 +15,7 @@ package {
             //addAnimation("0", [0, 1, 2], 10, true);
 			addAnimation("0", [3], 1, true);
             //addAnimation("1", [3, 4, 5, 4, 3], 5, true);
-			addAnimation("1", [5], 1, true);
+			addAnimation("1", [1], 1, true);
             addAnimation("2", [6], 1, true);
             addAnimation("3", [8], 1, true);
             addAnimation("4", [9], 1, true);
@@ -41,11 +41,11 @@ package {
                     height -= 8;
                     break;
                 case 1:
-                    score = 200;
-                    offset.x += 2;
-                    offset.y += 4;
-                    width -= 3;
-                    height -= 4;
+                    score = 0;
+                    //offset.x += 2;
+                    //offset.y += 4;
+                    //width -= 3;
+                    //height -= 4;
                     break;
                 case 2:
                     missiles = 10;

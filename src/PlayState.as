@@ -7,6 +7,7 @@ package {
         //[Embed(source="../assets/rabbit.png")] private var rabbitBMP:Class;
         [Embed(source="../assets/tiles.png")] private var tilemapBMP:Class;
         [Embed(source="../assets/map01.txt", mimeType = "application/octet-stream")] private var map01Data:Class
+        [Embed(source="../assets/map02.txt", mimeType = "application/octet-stream")] private var map02Data:Class
         //[Embed(source="../assets/pick.mp3")] private var pickSND:Class;
         public var WorldWidth:uint;
         public var WorldHeight:uint;
@@ -18,15 +19,22 @@ package {
         private var iTimer:Number;
         private var items:FlxGroup;
         private var enemies:FlxGroup;
+        private var enemyshots:FlxGroup;
+        private var weapons:FlxGroup;
+        private var GameOverCountdown:Number;
+
         public static const GRAVITY: Number = 200;
         public static const MAX_ITEMS: uint = 100;
         public static const MAX_ENEMIES: uint = 32;
+        public static const MAX_ENEMYSHOTS: uint = 16;
 
         override public function create():void {
             super.create();
             player = new Player(this);
             hud = new HUD(player);
             add(player);
+            weapons = player.weapons;
+            add(weapons);
             items = new FlxGroup(MAX_ITEMS);
             var i:uint;
             for (i = 0; i < MAX_ITEMS; i++) {
@@ -38,41 +46,30 @@ package {
                 enemies.add(new Enemy());
             }
             add(enemies);
+            enemyshots = new FlxGroup(MAX_ENEMYSHOTS);
+            for (i = 0; i < MAX_ENEMYSHOTS; i++) {
+                enemyshots.add(new EnemyBullet());
+            }
+            add(enemyshots);
             map = new FlxTilemap();
             add(map);
-            changeMap(1, false);
+            changeMap(1);
             add(hud);
             fTimer = 0;
         }
-        /*
+
         private function TilemapCallback(Moving:FlxObject,Idle:FlxObject):Boolean {
             if ((Moving is Bullet) && (Idle is FlxTilemap)) {
                 return (Idle as FlxTilemap).overlapsWithCallback(Moving);
             }
             return false;
         }
-        */
 
         /*
         private function TilemapHit(Moving:FlxObject,Idle:FlxObject):Boolean {
             if (Moving is PlayerWeapon) {
                 Moving.kill();
                 explode(Moving.x, Moving.y);
-            }
-            return true;
-        }
-        */
-        /*
-        private function DestroyableHit(Moving:FlxObject,Destroyable:FlxObject):Boolean {
-            if (Moving is Bullet) {
-                Moving.kill();
-                explode(Moving.x, Moving.y);
-            }
-            if (Destroyable is Enemy) {
-                var e:Enemy = Enemy(Destroyable as Enemy);
-                e.kill();
-                explode(e.x, e.y);
-                player.score += e.score;
             }
             return true;
         }
@@ -89,39 +86,34 @@ package {
                     player.hit();
                 }
 				*/
-                if (FlxG.overlap(player, enemies, DestroyableHit)) {
+                if (FlxG.overlap(player, enemies, PlayerEnemyHit)) {
                     player.hit();
                 }
-				/*
                 if (FlxG.overlap(enemyshots, player, DestroyableHit)) {
+                    //FlxG.overlap(enemyshots, map, DestroyableHit, TilemapCallback);
                     player.hit();
                 }
-				*/
                 FlxG.overlap(player, items, null, GetItem);
-                /*
 				//FlxG.overlap(weapons, map, TilemapHit, TilemapCallback);
                 FlxG.overlap(weapons, map, DestroyableHit, TilemapCallback);
                 FlxG.overlap(enemyshots, map, DestroyableHit, TilemapCallback);
                 FlxG.overlap(weapons, enemies, null, DestroyableHit);
                 //FlxG.overlap(bombs, enemies, null, DestroyableHit);
-                */
-                /*
                 if (player.lives <= 0) {
                     player.kill();
                     GameOverCountdown = 2;
                     return;
                 }
+                /*
                 if (player.x + player.width >= map.width) {
                     nextLevel();
                 }
                 */
             } else {
-                /*
                 GameOverCountdown = Math.max(0, GameOverCountdown - FlxG.elapsed);
                 if (GameOverCountdown == 0) {
                     FlxG.switchState(new GameOverState(player.score));
                 }
-                */
             }
             /*
             if (FlxG.keys.justPressed("F1")) {
@@ -151,7 +143,6 @@ package {
         }
 
         private function resetSprites():void {
-            /*
             var i:uint;
             var sprite:FlxSprite;
             for (i = 0; i < items.length; i++) {
@@ -166,15 +157,16 @@ package {
                 sprite = weapons.members[i];
                 sprite.kill();
             }
+            /*
             for (i = 0; i < explosions.length; i++) {
                 sprite = explosions.members[i];
                 sprite.kill();
             }
+            */
             for (i = 0; i < enemyshots.length; i++) {
                 sprite = enemyshots.members[i];
                 sprite.kill();
             }
-            */
         }
 
         private function spawnMap(MapData: Class):void {
@@ -224,7 +216,27 @@ package {
             }
             return true;
         }
-		
+
+        private function PlayerEnemyHit(p:FlxObject, enemy:FlxObject):Boolean {
+            //player.hit();
+            /*
+            if (Moving is Bullet) {
+                Moving.kill();
+                //explode(Moving.x, Moving.y);
+            }
+            */
+            /*
+            if (Destroyable is Enemy) {
+                var e:Enemy = Enemy(Destroyable as Enemy);
+                e.kill();
+                //explode(e.x, e.y);
+                player.score += e.score;
+            }
+            */
+            return true;
+        }
+
+
         private function spawnItem(X:Number, Y:Number, t:uint):void {
             var e: Item = Item(items.getFirstDead());
             if (e == null) {
@@ -241,23 +253,30 @@ package {
             var p:Player = Player(ThePlayer);
             p.score += i.score;
             p.lives += i.lives;
-            //p.numMissiles += i.missiles;
+            p.numMissiles += i.missiles;
             //p.numBombs += i.bombs;
             i.kill();
             //FlxG.play(pickSND);
+            if (i.itype == 1) {
+                nextLevel();
+            }
             return true;
         }
 
-        private function changeMap(M: uint, keepY: Boolean = true):void {
+        private function changeMap(M: uint):void {
+            if (M == 3) {
+                FlxG.switchState(new GameOverState(player.score, true));
+            }
             M = Math.max(1, M);
             var initialY: int = 0;
             resetSprites();
             var mapData:Class;
             mapData = map01Data;
+            initialY = 64;
             switch(M) {
                 case 1: mapData = map01Data; initialY = 64; break;
+                case 2: mapData = map02Data; initialY = 64; break;
                 /*
-                case 2: mapData = map02Data; initialY = 80; break;
                 case 3: mapData = map03Data; initialY = 26 * 16; break;
                 case 4: mapData = map04Data; initialY = 7 * 16; break;
                 case 5: mapData = map05Data; initialY = 11 * 16; break;
@@ -275,10 +294,8 @@ package {
             currLevel = M;
 
             // set player position
-            player.x = 0;
-            if (!keepY) {
-                player.y = initialY;
-            }
+            player.x = 32;
+            player.y = initialY;
             player.velocity.x = 0;
             player.velocity.y = 0;
             WorldWidth = map.width;
@@ -289,15 +306,14 @@ package {
         private function nextLevel():void {
             changeMap(currLevel + 1);
         }
-        /*
+
         public function enemyShoot(Who:Enemy, tx:Number, ty:Number, sp:Number):void {
             var m:EnemyBullet;
             m = EnemyBullet(enemyshots.getFirstDead());
             if (m != null) {
                 m.shoot(Who, tx, ty, sp);
-                FlxG.play(pickSND);
+                //FlxG.play(pickSND);
             }
         }
-        */
     }
 }
